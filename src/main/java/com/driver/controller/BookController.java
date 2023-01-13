@@ -17,14 +17,14 @@ public class BookController {
     @Autowired
     BookService bookService;
 
-    @PostMapping("/createBook")
+    @PostMapping("/")
     public ResponseEntity<String> createBook(@RequestBody() Book book) {
 
         bookService.createBook(book);
         return new ResponseEntity<>("Success", HttpStatus.CREATED);
     }
 
-    @GetMapping("/getBooks")
+    @GetMapping("/")
     public ResponseEntity getBooks(@RequestParam(value = "genre", required = false) String genre,
                                    @RequestParam(value = "available", required = false, defaultValue = "false") boolean available,
                                    @RequestParam(value = "author", required = false) String author){
