@@ -55,5 +55,10 @@ public class Student {
                 '}';
     }
 
-
+    public Student(String emailId, String name, int age, String country) {
+        this.emailId = emailId;
+        this.name = name;
+        this.age = age;
+        this.country = country;
+    }
 }
