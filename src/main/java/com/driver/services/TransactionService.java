@@ -135,11 +135,13 @@ public class TransactionService {
 
 
         List<Transaction> transactionList = book.getTransactions();
+        if(transactionList==null) {
+            transactionList = new ArrayList<>();
+        }
         transactionList.add(returnBookTransaction);
         book.setTransactions(transactionList);
 
         cardRepository5.save(card);
-        bookRepository5.save(book);
 
         return returnBookTransaction; //return the transaction after updating all details
     }
