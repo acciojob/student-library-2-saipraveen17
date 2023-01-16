@@ -95,89 +95,87 @@ public class TransactionService {
         return transaction.getTransactionId(); //return transactionId instead
     }
 
-    public Transaction returnBook(int cardId, int bookId) throws Exception{
-
-        List<Transaction> transactions = transactionRepository5.find(cardId, bookId, TransactionStatus.SUCCESSFUL, true);
-        Transaction transaction = transactions.get(transactions.size() - 1);
-
-        //for the given transaction calculate the fine amount considering the book has been returned exactly when this function is called
-        //make the book available for other users
-        //make a new transaction for return book which contains the fine amount as well
-
-        Book book = bookRepository5.findById(bookId).get();
-        Card card = cardRepository5.findById(cardId).get();
-
-        book.setAvailable(true);
-        book.setCard(null);
-
-        Transaction returnBookTransaction = new Transaction();
-        transaction.setBook(book);
-        transaction.setCard(card);
-        transaction.setIssueOperation(false);
-        transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
-
-        List<Book> bookList = card.getBooks();
-        bookList.remove(book);
-        card.setBooks(bookList);
-
-        Date issueDate = transaction.getTransactionDate();
-
-        long issueTime = Math.abs(System.currentTimeMillis() - issueDate.getTime());
-
-        long daysPassed = TimeUnit.DAYS.convert(issueTime, TimeUnit.MILLISECONDS);
-
-        int fineAmount = 0;
-        if(daysPassed>getMax_allowed_days) {
-            fineAmount = (int) (fine_per_day*(daysPassed-getMax_allowed_days));
-        }
-        returnBookTransaction.setFineAmount(fineAmount);
-
-        List<Transaction> transactionList = book.getTransactions();
-        transactionList.add(transaction);
-        book.setTransactions(transactionList);
-
-        cardRepository5.save(card);
-
-        return returnBookTransaction; //return the transaction after updating all details
-    }
-
 //    public Transaction returnBook(int cardId, int bookId) throws Exception{
 //
 //        List<Transaction> transactions = transactionRepository5.find(cardId, bookId, TransactionStatus.SUCCESSFUL, true);
 //        Transaction transaction = transactions.get(transactions.size() - 1);
 //
-//        Date issueDate = transaction.getTransactionDate();
+//        //for the given transaction calculate the fine amount considering the book has been returned exactly when this function is called
+//        //make the book available for other users
+//        //make a new transaction for return book which contains the fine amount as well
 //
-//        long timeIssuetime = Math.abs(System.currentTimeMillis() - issueDate.getTime());
-//
-//        long no_of_days_passed = TimeUnit.DAYS.convert(timeIssuetime, TimeUnit.MILLISECONDS);
-//
-//        int fine = 0;
-//        if(no_of_days_passed > getMax_allowed_days){
-//            fine = (int)((no_of_days_passed - getMax_allowed_days) * fine_per_day);
-//        }
-//
-//        Book book = transaction.getBook();
+//        Book book = bookRepository5.findById(bookId).get();
+//        Card card = cardRepository5.findById(cardId).get();
 //
 //        book.setAvailable(true);
 //        book.setCard(null);
 //
-//        //Remve that book from that card list
+//        Transaction returnBookTransaction = new Transaction();
+//        transaction.setBook(book);
+//        transaction.setCard(card);
+//        transaction.setIssueOperation(false);
+//        transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
 //
-//        bookRepository5.updateBook(book);
+//        List<Book> bookList = card.getBooks();
+//        bookList.remove(book);
+//        card.setBooks(bookList);
 //
-//        Transaction tr = new Transaction();
-//        tr.setBook(transaction.getBook());
-//        tr.setCard(transaction.getCard());
-//        tr.setIssueOperation(false);
-//        tr.setFineAmount(fine);
-//        tr.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+//        Date issueDate = transaction.getTransactionDate();
 //
-//        transactionRepository5.save(tr);
+//        long issueTime = Math.abs(System.currentTimeMillis() - issueDate.getTime());
 //
-//        return tr;
-//        //for the given transaction calculate the fine amount considering the book has been returned exactly when this function is called
-//        //make the book available for other users
-//        //make a new transaction for return book which contains the fine amount as well
+//        long daysPassed = TimeUnit.DAYS.convert(issueTime, TimeUnit.MILLISECONDS);
+//
+//        int fineAmount = 0;
+//        if(daysPassed>getMax_allowed_days) {
+//            fineAmount = (int) (fine_per_day*(daysPassed-getMax_allowed_days));
+//        }
+//        returnBookTransaction.setFineAmount(fineAmount);
+//
+//        List<Transaction> transactionList = book.getTransactions();
+//        transactionList.add(transaction);
+//        book.setTransactions(transactionList);
+//
+//        cardRepository5.save(card);
+//
+//        return returnBookTransaction; //return the transaction after updating all details
 //    }
+
+    public Transaction returnBook(int cardId, int bookId) throws Exception{
+
+        List<Transaction> transactions = transactionRepository5.find(cardId, bookId, TransactionStatus.SUCCESSFUL, true);
+        Transaction transaction = transactions.get(transactions.size() - 1);
+
+
+        Transaction tr = new Transaction();
+
+        int days = tr.getTransactionDate().compareTo(transaction.getTransactionDate());
+        int fineAmount = 0;
+        if(days>getMax_allowed_days) {
+            fineAmount = fine_per_day*(days-getMax_allowed_days);
+        }
+
+        Book book = transaction.getBook();
+
+        book.setAvailable(true);
+        book.setCard(null);
+
+        //Remve that book from that card list
+
+        bookRepository5.updateBook(book);
+
+
+        tr.setBook(transaction.getBook());
+        tr.setCard(transaction.getCard());
+        tr.setIssueOperation(false);
+        tr.setFineAmount(fineAmount);
+        tr.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+
+        transactionRepository5.save(tr);
+
+        return tr;
+        //for the given transaction calculate the fine amount considering the book has been returned exactly when this function is called
+        //make the book available for other users
+        //make a new transaction for return book which contains the fine amount as well
+    }
 }
