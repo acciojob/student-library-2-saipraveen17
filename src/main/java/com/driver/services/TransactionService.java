@@ -120,10 +120,15 @@ public class TransactionService {
         bookList.remove(book);
         card.setBooks(bookList);
 
-        int days = returnBookTransaction.getTransactionDate().compareTo(transaction.getTransactionDate());
+        Date issueDate = transaction.getTransactionDate();
+
+        long issueTime = Math.abs(System.currentTimeMillis() - issueDate.getTime());
+
+        long daysPassed = TimeUnit.DAYS.convert(issueTime, TimeUnit.MILLISECONDS);
+
         int fineAmount = 0;
-        if(days>getMax_allowed_days) {
-            fineAmount = fine_per_day*(days-getMax_allowed_days);
+        if(daysPassed>getMax_allowed_days) {
+            fineAmount = (int) (fine_per_day*(daysPassed-getMax_allowed_days));
         }
         returnBookTransaction.setFineAmount(fineAmount);
 
