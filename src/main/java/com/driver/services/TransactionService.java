@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -43,12 +44,15 @@ public class TransactionService {
         //If the transaction is successful, save the transaction to the list of transactions and return the id
 
         //Note that the error message should match exactly in all cases
+
         Book book = bookRepository5.findById(bookId).get();
         Card card = cardRepository5.findById(cardId).get();
+
         Transaction transaction = new Transaction();
         transaction.setBook(book);
         transaction.setCard(card);
         transaction.setIssueOperation(true);
+
         if(book==null || !book.isAvailable()) {
             transaction.setTransactionStatus(TransactionStatus.FAILED);
             transactionRepository5.save(transaction);
@@ -64,16 +68,28 @@ public class TransactionService {
             transactionRepository5.save(transaction);
             throw new Exception("Book limit has reached for this card");
         }
+
         book.setAvailable(false);
         book.setCard(card);
+
         transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+
         List<Book> bookList = card.getBooks();
+        if(bookList==null) {
+            bookList = new ArrayList<>();
+        }
         bookList.add(book);
         card.setBooks(bookList);
-        transactionRepository5.save(transaction);
+
         List<Transaction> transactionList = book.getTransactions();
+        if(transactionList==null) {
+            transactionList = new ArrayList<>();
+        }
         transactionList.add(transaction);
         book.setTransactions(transactionList);
+
+        cardRepository5.save(card);
+
         return transaction.getTransactionId(); //return transactionId instead
     }
 
@@ -88,27 +104,33 @@ public class TransactionService {
 
         Book book = bookRepository5.findById(bookId).get();
         Card card = cardRepository5.findById(cardId).get();
+
         book.setAvailable(true);
         book.setCard(null);
+
         Transaction returnBookTransaction = new Transaction();
         transaction.setBook(book);
         transaction.setCard(card);
         transaction.setIssueOperation(false);
         transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+
         List<Book> bookList = card.getBooks();
         bookList.remove(book);
         card.setBooks(bookList);
+
         int days = returnBookTransaction.getTransactionDate().compareTo(transaction.getTransactionDate());
         int fineAmount = 0;
         if(days>getMax_allowed_days) {
             fineAmount = fine_per_day*(days-getMax_allowed_days);
         }
         returnBookTransaction.setFineAmount(fineAmount);
+
         List<Transaction> transactionList = book.getTransactions();
         transactionList.add(transaction);
         book.setTransactions(transactionList);
-        transactionRepository5.save(returnBookTransaction);
-        bookRepository5.updateBook(book);
+
+        cardRepository5.save(card);
+
         return returnBookTransaction; //return the transaction after updating all details
     }
 }
