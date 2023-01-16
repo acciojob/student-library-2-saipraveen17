@@ -17,26 +17,23 @@ public class BookService {
     @Autowired
     BookRepository bookRepository2;
     @Autowired
-    private AuthorRepository authorRepository;
+    private AuthorRepository authorRepository1;
 
     public void createBook(Book book){
 
-        try
-        {
-            int authorId = book.getAuthor().getId();
-            Author author = authorRepository.findById(authorId).get();
-            List<Book> bookList = author.getBooksWritten();
-            if(bookList==null) {
-                bookList = new ArrayList<>();
-            }
-            bookList.add(book);
-            book.setAuthor(author);
-            author.setBooksWritten(bookList);
-            authorRepository.save(author);
-        }
-        catch(Exception e) {
-            bookRepository2.save(book);
-        }
+        int authorId = book.getAuthor().getId();
+
+        Author author =  authorRepository1.findById(authorId).get();
+
+        //Update the bookList written by Author
+        author.getBooksWritten().add(book);
+
+        //Updated the book
+        book.setAuthor(author);
+        //bookRepository2.save(book);
+        bookRepository2.save(book);
+
+        authorRepository1.save(author);
     }
 
     public List<Book> getBooks(String genre, boolean available, String author){
