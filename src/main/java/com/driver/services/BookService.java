@@ -17,37 +17,38 @@ public class BookService {
     @Autowired
     BookRepository bookRepository2;
     @Autowired
-    private AuthorRepository authorRepository1;
+    private AuthorRepository authorRepository;
 
     public void createBook(Book book){
 
-        int authorId = book.getAuthor().getId();
-
-        Author author =  authorRepository1.findById(authorId).get();
-
-        //Update the bookList written by Author
-        author.getBooksWritten().add(book);
-
-        //Updated the book
-        book.setAuthor(author);
-        //bookRepository2.save(book);
-        bookRepository2.save(book);
-
-        authorRepository1.save(author);
+        try
+        {
+            int authorId = book.getAuthor().getId();
+            Author author = authorRepository.findById(authorId).get();
+            List<Book> bookList = author.getBooksWritten();
+            if(bookList==null) {
+                bookList = new ArrayList<>();
+            }
+            bookList.add(book);
+            book.setAuthor(author);
+            author.setBooksWritten(bookList);
+            authorRepository.save(author);
+        }
+        catch(Exception e) {
+            bookRepository2.save(book);
+        }
     }
 
     public List<Book> getBooks(String genre, boolean available, String author){
-        List<Book> books;
 
         if(genre != null && author != null){
-            books = bookRepository2.findBooksByGenreAuthor(genre, author, available);
+            return bookRepository2.findBooksByGenreAuthor(genre, author, available);
         }else if(genre != null){
-            books = bookRepository2.findBooksByGenre(genre, available);
+            return bookRepository2.findBooksByGenre(genre, available);
         }else if(author != null){
-            books = bookRepository2.findBooksByAuthor(author, available);
+            return bookRepository2.findBooksByAuthor(author, available);
         }else{
-            books = bookRepository2.findByAvailability(available);
+            return bookRepository2.findByAvailability(available);
         }
-        return books;
     }
 }
